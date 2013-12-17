@@ -25,6 +25,7 @@ from ceilometer import storage
 from oslo.config import cfg
 from pymongo import errors
 
+import efile
 import plugins
 import pools
 import rando
@@ -88,6 +89,8 @@ if __name__ == "__main__":
     parser.add_argument('--events', '-e', type=int, default=1000,
                         help=("Number of events to insert during test. "
                               "Default: 1000"))
+    parser.add_argument('--input', '-i', type=str, default=None,
+                        help=("File to read pregenerated events from"))
     parser.add_argument('--batch', '-b', type=int, default=100,
                         help=("Number of events to generate before sending to "
                               "the database. Default: 100"))
@@ -110,11 +113,14 @@ if __name__ == "__main__":
                         help="Enforce a sharded datastore, if supported.")
 
     args = parser.parse_args()
-    pool = pools.Pool.from_snapshot(args.pool) if args.pool else \
-        pools.Pool(args.events, test_setup, store=args.store)
-    rand = rando.RandomEventGenerator(pool, test_setup)
+    if args.input is not None:
+        pool = pools.Pool.from_snapshot(args.pool) if args.pool else \
+            pools.Pool(args.events, test_setup, store=args.store)
+        generator = rando.RandomEventGenerator(pool, test_setup)
+    else:
+        generator = efile.EventsFromFile(args.input, test_setup)
     plugin_list = plugins.initialize_plugins(args.name, test_setup.plugins)
     conn = storage.get_connection(cfg.CONF)
 
-    before_test(rand, plugin_list, conn, args)
-    run_test(rand, plugin_list, conn, args)
+    before_test(generator, plugin_list, conn, args)
+    run_test(generator, plugin_list, conn, args)
