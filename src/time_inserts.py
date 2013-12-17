@@ -53,7 +53,7 @@ def run_test(event_generator, plugin_list, conn, settings):
     revs = settings.events / settings.batch
     publish_frequency = settings.publish
     for x in range(1, revs + 1):
-        events = event_generator.generate_random_events(settings.batch)
+        events = event_generator.get_events(settings.batch)
         start = time.time()
         failed = conn.record_events(events)
         end = time.time()

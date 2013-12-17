@@ -98,7 +98,7 @@ class RandomEventGenerator(object):
                             event_type,
                             self._get_next_generated(), trait_models)
 
-    def generate_random_events(self, quantity):
+    def get_events(self, quantity):
         """Generates N random events.
         """
         event_models = []
